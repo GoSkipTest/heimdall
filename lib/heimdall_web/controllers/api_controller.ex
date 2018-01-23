@@ -13,17 +13,20 @@ defmodule HeimdallWeb.ApiController do
   # this route takes a comma separated list and should add a check digit to each element
   # http://0.0.0.0:4000/api/add_a_bunch_of_check_digits/12345,233454,34341432
   def add_a_bunch_of_check_digits(conn, params) do
-    check_digits_with_upc = String.split(params.upcs, ",")
-    |> tl
-    |> Enum.map((fn upc -> _calculate_check_digit(upc) end))
-
+    upcs = String.split(params["upcs"], ",")
+    check_digits_with_upc = Enum.map(upcs, fn upc -> _calculate_check_digit(upc) end)
     _send_json(conn, 200, check_digits_with_upc)
   end
 
   # these are private methods
   defp _calculate_check_digit(upc) do
-    #this is where your code to calculate the check digit should go
-    upc
+    if String.length(upc) != 11, do: raise "UPC must be 11 characters, was: " <> upc
+    upc_num = elem(Integer.parse(upc, 10), 0)
+    numbered = Enum.zip(Integer.digits(upc_num, 10), 1..11)
+    odds = for {v, n} <- numbered, rem(n,2) == 1, do: v
+    evens = for {v, n} <- numbered, rem(n,2) == 0, do: v
+    check = 10 - rem(Enum.sum(odds)*3 + Enum.sum(evens), 10)
+    upc <> Integer.to_string(check)
   end
 
   # this is a thing to format your responses and return json to the client
