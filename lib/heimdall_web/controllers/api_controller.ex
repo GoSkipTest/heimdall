@@ -25,7 +25,7 @@ defmodule HeimdallWeb.ApiController do
     numbered = Enum.zip(Integer.digits(upc_num, 10), 1..11)
     odds = for {v, n} <- numbered, rem(n,2) == 1, do: v
     evens = for {v, n} <- numbered, rem(n,2) == 0, do: v
-    check = 10 - rem(Enum.sum(odds)*3 + Enum.sum(evens), 10)
+    check = rem(10 - rem(Enum.sum(odds)*3 + Enum.sum(evens), 10), 10)
     upc <> Integer.to_string(check)
   end
 
